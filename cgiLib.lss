@@ -1,0 +1,74 @@
+%REM
+	Library cgiLib
+	Created Jul 23, 2023 by Francesco Marzolo
+	Description: save cgi Variables to doc
+%END REM
+Option Declare
+Private Const cgiFieldNames="Auth_Type,Content_Length,Content_Type,Gateway_Interface,HTTP_Accept,HTTP_Accept_language,HTTP_Referer,HTTPS,HTTPS_CLIENT_CERT_COMMON_NAME,HTTPS_CLIENT_CERT_ISSUER_COMMON_NAME,HTTPS_KEYSIZE,HTTP_User_Agent,Path_Info,Path_Info_Decoded,Path_Translated,Query_String,Note,Query_String_Decoded,Remote_Addr,Remote_Host,Remote_Ident,Remote_User,Request_Content,Request_Content_nnn,,Request_Method,Script_Name,Server_Name,Server_Protocol,Server_Port,Server_Software,Server_URL_Gateway_Interface"
+%REM
+	Auth_Type: If the server supports user authentication and the script is protected, this is the protocol-specific authentication method used to validate the user.
+Content_Length: The length of the content, as given by the client.
+Content_Type: For queries that have attached information, such as HTTP POST and PUT, this is the content type of the data.
+Gateway_Interface: The version of the CGI spec with which the server complies.
+HTTP_Accept: The MIME types that the client accepts, as specified by HTTP headers.
+HTTP_Accept_language: The languages that the client accepts, as specified by HTTP headers.
+HTTP_Referer: The URL of the page the user used to get here.
+HTTPS: Indicates if SSL mode is enabled for the server.
+HTTPS_CLIENT_CERT_COMMON_NAME: The common name on the x.509 certificate
+HTTPS_CLIENT_CERT_ISSUER_COMMON_NAME: The issuer of the x.509 certificate
+HTTPS_KEYSIZE: The session key during an SSL session. For example, 40-bit, 128-bit.
+HTTP_User_Agent: The browser that the client is using to send the request.
+Path_Info: The extra path information (from the server's root HMTL directory), as given by the client. In other words, scripts can be accessed by their virtual path name, followed by extra information that is sent as PATH_INFO.
+Path_Info_Decoded: Returns the same as Path_Info, but decodes the string. For example, if a URL references a view name that contains characters that are not allowed a URL, the name is encoded.This CGI variable decodes the string.Path_Info_Decoded is available to Domino® applications only.
+Path_Translated: The server provides a translated version of PATH_INFO, which takes the path and does any virtual-to-physical mapping to it.
+Query_String: The information that follows the question mark (?) in the URL that referenced this script.
+Note:  If your Domino® server is configured to allow search engines to search your Web site Domino® will generate URLs with an exclamation mark (!) instead of a question mark (?).If this is the case the Query_String CGI variable includes the information that follows the exclamation mark (!). Domino® always recognizes both the question mark (?) and the exclamation mark (!), but only generates URLs with the exclamation mark (!) if your site is accessible to Web search engines.Generating URLs with an exclamation mark (!) makes them more searchable.
+Query_String_Decoded: Returns the same as Query_String, but decodes the string.For example, if a URL references a view name that contains characters that are not allowed in a URL, the name is encoded.This CGI variable decodes that string.Path_Info_Decoded is available to Domino® applications only.
+Remote_Addr: The IP address of the remote host making the request.
+Remote_Host: The name of the host making the request.
+Remote_Ident: This variable will be set to the remote user name retrieved from the server. Use this variable only for logging.
+Remote_User: Authentication method that returns the authenticated user name.
+Request_Content: Supported only for agents. Contains the data sent with an HTTP POST request. The data is usually "URLencoded," consisting of name=value pairs concatenated by ampersands. For example, FirstName=John&LastName=Doe
+Request_Content_nnn
+: Used when the amount of data to be sent with an HTTP POST request exceeds the 64K limit. The first 64K of data is sent in Request_Content_000, the second 64K of data is sent in Request_Content_001, and so on.
+Request_Method: The method used to make the request. For HTTP, this is "GET," "HEAD," "POST," and so on.
+Script_Name: A virtual path to the script being executed, used for self-referencing URLs.
+Server_Name: The server's host name, DNS alias, or IP address as it would appear in self-referencing URLs.
+Server_Protocol: The name and revision of the information protocol accompanying this request.
+Server_Port: The port to which the request was sent.
+Server_Software: The name and version of the information server software running the CGI program.
+Server_URL_Gateway_Interface: The version of the CGI spec with which the server complies.
+%END REM
+%REM
+	Class cgiManager
+%END REM
+Public Class cgiManager
+	Private ns As NotesSession
+	Private arr_strcgifieldnames As Variant
+	Public  Property Get getcgiFieldNames As Variant
+		getcgiFieldNames=arr_strcgifieldnames
+	End Property
+	
+	Sub New (ns As NotesSession)
+		Set me.ns=ns
+		arr_strcgifieldnames=Split(cgiFieldNames,",")
+	End Sub
+	
+	Sub copybtwDoc(fromdoc As NotesDocument, toDoc As NotesDocument)
+		If fromdoc Is Nothing Then
+			Error 8003, "FromDoc is nothing"
+		End If
+		If todoc Is Nothing Then
+			Error 8003, "todoc is nothing"
+		End If
+		
+		Dim fromitem As NotesItem, strFromfldname$
+		ForAll fieldName In getcgiFieldNames
+			strFromfldname$=CStr(Fieldname)
+			If fromdoc.Hasitem(strFromfldname$) Then
+				Set fromitem=fromdoc.Getfirstitem(strFromfldname$)
+				Call todoc.Copyitem(fromitem, fromitem.Name)
+			End If
+		End ForAll
+	End Sub
+End Class
