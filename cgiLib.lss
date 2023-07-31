@@ -3,7 +3,10 @@
 	Created Jul 23, 2023 by Francesco Marzolo
 	Description: save cgi Variables to doc
 %END REM
+
 Option Declare
+
+
 Private Const cgiFieldNames="Auth_Type,Content_Length,Content_Type,Gateway_Interface,HTTP_Accept,HTTP_Accept_language,HTTP_Referer,HTTPS,HTTPS_CLIENT_CERT_COMMON_NAME,HTTPS_CLIENT_CERT_ISSUER_COMMON_NAME,HTTPS_KEYSIZE,HTTP_User_Agent,Path_Info,Path_Info_Decoded,Path_Translated,Query_String,Note,Query_String_Decoded,Remote_Addr,Remote_Host,Remote_Ident,Remote_User,Request_Content,Request_Content_nnn,,Request_Method,Script_Name,Server_Name,Server_Protocol,Server_Port,Server_Software,Server_URL_Gateway_Interface"
 %REM
 	Auth_Type: If the server supports user authentication and the script is protected, this is the protocol-specific authentication method used to validate the user.
@@ -39,18 +42,33 @@ Server_Port: The port to which the request was sent.
 Server_Software: The name and version of the information server software running the CGI program.
 Server_URL_Gateway_Interface: The version of the CGI spec with which the server complies.
 %END REM
+
 %REM
 	Class cgiManager
 %END REM
 Public Class cgiManager
 	Private ns As NotesSession
+	Private doc As NotesDocument
 	Private arr_strcgifieldnames As Variant
+	
+	
+	Public  Property Get getcgiitem(fldname As String) As notesitem
+		If me.doc Is Nothing Then
+			Error 8003, "Document not available"
+		else
+			If me.doc.Hasitem(fldname) Then
+				Set getcgiitem=me.doc.Getfirstitem(fldname)
+			End If
+		End If
+	End Property
+
 	Public  Property Get getcgiFieldNames As Variant
 		getcgiFieldNames=arr_strcgifieldnames
 	End Property
 	
 	Sub New (ns As NotesSession)
 		Set me.ns=ns
+		Set me.doc=ns.Documentcontext
 		arr_strcgifieldnames=Split(cgiFieldNames,",")
 	End Sub
 	
